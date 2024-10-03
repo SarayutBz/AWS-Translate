@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translate App</title>
+</head>
+<body>
+    <h1>Upload a PDF or DOCX file to Translate</h1>
+    <form id="uploadForm">
+        <label for="file">Choose file:</label>
+        <input type="file" id="file" name="file" accept=".pdf, .docx" required><br><br>
+
+        <label for="source_lang">Source Language:</label>
+        <input type="text" id="source_lang" name="source_lang" required><br><br>
+
+        <label for="target_lang">Target Language:</label>
+        <input type="text" id="target_lang" name="target_lang" required><br><br>
+
+        <button type="submit">Upload and Translate</button>
+    </form>
+
+    <h2>Translation Result:</h2>
+    <p id="result"></p>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/upload', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const result = await response.json();
+                    document.getElementById('result').innerText = result.translated_text || result.error;
+                } else {
+                    throw new Error('Response is not JSON');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerText = 'An error occurred. Please try again.';
+            }
+        });
+    </script>
+</body>
+</html>
